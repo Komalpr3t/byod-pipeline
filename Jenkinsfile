@@ -2,66 +2,75 @@ pipeline {
     agent any
 
     environment {
-        // --- Task 2: Pipeline Environment & Credentials ---
+        // Force branch name logic for simple pipelines
+        BRANCH_NAME           = "${env.BRANCH_NAME ?: 'dev'}"
+
         TF_IN_AUTOMATION      = 'true'
         TF_CLI_ARGS           = '-no-color'
         
-        // Injecting AWS Credentials securely
+        // AWS Credentials
         AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
-        
-        // Injecting SSH Key ID
         SSH_CRED_ID           = 'my-ssh-key-id' 
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Pulls code from your GitHub repo
                 checkout scm
             }
         }
 
         stage('Initialize & Inspect') {
-            // --- Task 3: Initialization & Variable Inspection ---
             steps {
                 script {
-                    // Initialize Terraform
-                    sh 'terraform init'
-
-                    // Display the variable file content
-                    echo "--- Checking variables for branch: ${env.BRANCH_NAME} ---"
-                    sh """
-                       if [ -f "${env.BRANCH_NAME}.tfvars" ]; then
-                           cat ${env.BRANCH_NAME}.tfvars
-                       else
-                           echo "Error: ${env.BRANCH_NAME}.tfvars not found!"
+                    // Initialize Terraform (Using bat for Windows)
+                    bat 'terraform init'
+                    
+                    echo "--- Environment: ${BRANCH_NAME} ---"
+                    
+                    // Windows logic to check if file exists and print it
+                    bat """
+                       if exist "${BRANCH_NAME}.tfvars" (
+                           echo Using variable file: ${BRANCH_NAME}.tfvars
+                           type ${BRANCH_NAME}.tfvars
+                       ) else (
+                           echo Error: ${BRANCH_NAME}.tfvars not found!
                            exit 1
-                       fi
+                       )
                     """
                 }
             }
         }
 
         stage('Terraform Plan') {
-            // --- Task 4: Branch-Specific Planning ---
             steps {
                 script {
-                    echo "Planning for ${env.BRANCH_NAME}..."
-                    // Run plan using the branch-specific variable file
-                    sh "terraform plan -var-file=${env.BRANCH_NAME}.tfvars"
+                    echo "Generating Plan for ${BRANCH_NAME}..."
+                    // using 'bat' for Windows
+                    bat "terraform plan -var-file=${BRANCH_NAME}.tfvars -out=tfplan"
                 }
             }
         }
 
         stage('Validate Apply') {
-            // --- Task 5: Conditional Manual Approval ---
+            // Only ask for approval on 'dev' branch
             when {
-                branch 'dev'  // Only runs if the branch is 'dev'
+                expression { return env.BRANCH_NAME == 'dev' }
             }
             steps {
-                input message: "Approve deployment to ${env.BRANCH_NAME}?", ok: "Yes, Proceed"
-                echo "Approval Granted!"
+                input message: "Approve deployment to ${BRANCH_NAME}?", ok: "Yes, Apply"
+                echo "Approval Granted. Proceeding to Apply..."
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                script {
+                    echo "Applying changes to ${BRANCH_NAME}..."
+                    // using 'bat' for Windows
+                    bat "terraform apply -auto-approve tfplan"
+                }
             }
         }
     }
