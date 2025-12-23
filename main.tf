@@ -7,3 +7,5 @@ resource "null_resource" "test" {
     command = "echo Terraform is running in ${var.env_name}"
   }
 }
+
+#v2.0
