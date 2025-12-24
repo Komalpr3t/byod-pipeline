@@ -2,13 +2,13 @@ pipeline {
     agent any
 
     environment {
-        // Force branch name logic for simple pipelines
+        
         BRANCH_NAME           = "${env.BRANCH_NAME ?: 'dev'}"
 
         TF_IN_AUTOMATION      = 'true'
         TF_CLI_ARGS           = '-no-color'
         
-        // AWS Credentials
+        
         AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
         SSH_CRED_ID           = 'my-ssh-key-id' 
@@ -54,7 +54,7 @@ pipeline {
         }
 
         stage('Validate Apply') {
-            // Only ask for approval on 'dev' branch
+            /
             when {
                 expression { return env.BRANCH_NAME == 'dev' }
             }
