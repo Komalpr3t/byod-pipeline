@@ -29,15 +29,18 @@ pipeline {
             steps {
                 script {
                     echo "Provisioning Infrastructure..."
-                    // 1. Apply changes
-                    bat "terraform apply -auto-approve -var-file=${BRANCH_NAME}.tfvars -out=tfplan"
+                    
+                    // 1. Generate the Plan (Fixing the error here)
+                    bat "terraform plan -var-file=${BRANCH_NAME}.tfvars -out=tfplan"
+                    
+                    // 2. Apply the Plan
                     bat "terraform apply -auto-approve tfplan"
 
-                    // 2. Capture Outputs to files (Windows workaround)
+                    // 3. Capture Outputs to files
                     bat "terraform output -raw instance_ip > ip.txt"
                     bat "terraform output -raw instance_id > id.txt"
 
-                    // 3. Read files into Env Variables
+                    // 4. Read files into Env Variables
                     env.INSTANCE_IP = readFile('ip.txt').trim()
                     env.INSTANCE_ID = readFile('id.txt').trim()
                     
