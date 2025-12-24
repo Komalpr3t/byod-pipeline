@@ -1,0 +1,6 @@
+---
+- name: Test Splunk Connectivity
+  hosts: splunk_server
+  tasks:
+    - name: Ping the server
+      ping:

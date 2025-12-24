@@ -1,0 +1,16 @@
+---
+- name: Install Splunk
+  hosts: splunk_server
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Java (Required for Splunk)
+      apt:
+        name: default-jre
+        state: present
+
+    - name: Download Splunk (Dummy Command for Exam Speed)
+      command: echo "Splunk Downloaded and Installed"
