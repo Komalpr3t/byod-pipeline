@@ -7,6 +7,7 @@ pipeline {
         TF_CLI_ARGS           = '-no-color'
         AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
+        AWS_DEFAULT_REGION = 'us-east-1'
         // We need the SSH Private Key file content to connect via Ansible
         // Ideally, use SSH Agent, but for this exam text injection is easier
         SSH_PRIVATE_KEY       = credentials('my-ssh-key-id') 
